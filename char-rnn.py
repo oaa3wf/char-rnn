@@ -41,16 +41,26 @@ def process_data(file_name):
          fstring = ""
          for line in f:
              for char in line:
-                 it_prints=char in string.printable
-                 if not char in c2i and it_prints:
-                    c2i[char] = len(c2i)
+                 it_prints=char in string.printable #filter non-printable characters
+                 if not char in c2i and it_prints: #if no index exist for character
+                    #add to dictionaries
+                    c2i[char] = len(c2i) 
                     i2c[len(c2i)-1] = char
              fstring = fstring + line
          #print(fstring)
          print(c2i)
          print(i2c)
          print(mini_batcher(fstring,32,12))
-         
+
+#mini batcher:
+#   Creates a batch of sequences to train on
+#Input:
+#   src_str: dataset to pull from
+#   bat_size: number of sequences in batch
+#   seq_len: length of each sequence
+#
+#Output:
+#   list of seuqnces, each seqence is a list of indices      
 def mini_batcher(src_str,bat_size,seq_len):
     batch = {}
     for i in range(bat_size):
@@ -63,8 +73,12 @@ def split_inputs(inputs,length):
 	return [tf.squeeze(input_,[0]) for input_ in split_inputs]
 
 
-
-         
+#model
+#   Takes inputs from the command line and builds the model for the neural network
+#returns:
+#   inp_ph: Input placeholder. Structure for inputting data into the neural net
+#   top_hids: Top layer hidden states of each cell
+#   fin_hids: All hidden layers of final cell         
 def model( opt ):
     if opt['cell'] == 'vanilla':
         cell = rnn_cell.BasicRNNCell(opt['rnn_size'])
@@ -76,18 +90,20 @@ def model( opt ):
         cell = rnn_cell.BasicLSTMCell(opt['rnn_size'])
         cell0 = rnn_cell.BasicLSTMCell(opt['rnn_size'],input_size=len(c2i)+1)
         
-    
+    #build input placeholder
     inp_ph = tf.placeholder(tf.float32,[opt['seq_length'],None,len(c2i)+1])
     inputs = split_inputs(inp_ph,opt['seq_length'])      
         
-    multicell = rnn_cell.MultiRNNCell([cell0]+[cell]*(opt['num_layers']-1))
-    top_hids, fin_hids = rnn.rnn(multicell,inputs,dtype=tf.float32)
+    multicell = rnn_cell.MultiRNNCell([cell0]+[cell]*(opt['num_layers']-1)) #stack copies of cells to proper number of layers
+    multicell_out = rnn_cell.OutputProjectionWrapper(multicell,len(c2i)+1) #project onto correct dimensionality
+    top_hids, fin_hids = rnn.rnn(multicell_out,inputs,dtype=tf.float32) #repeat multicell for sequence len
     
     return inp_ph,top_hids,fin_hids  
     
     
     
 def add_training_nodes():
+
    return 
     
 def train():
