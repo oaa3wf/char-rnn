@@ -17,6 +17,7 @@ from tensorflow.models.rnn import rnn_cell
 
 import argparse
 
+c2i,i2c = {},{}    
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--train')
@@ -25,18 +26,28 @@ def main():
     parser.add_argument('--num_layers',type=int,default=2)
     parser.add_argument('--rnn_size',type=int,default=256)
     parser.add_argument('--seq_length',type=int,default=40)
-    
+    parser.add_argument('--num_iterations',type=int,default=5000)
+
     args = parser.parse_args()
     argv = vars(args)    
     
-    for key in argv:
-        print(key)
-        print(argv[key])
-    process_data(argv['train'])
+    #for key in argv:
+    #    print(key)
+    #    print(argv[key])
+    if(argv['train']!=None and argv['sample']==None):
+        #do stuffz
+        process_data(argv['train'])
+        #model
+        #training nodes
+        #train_loop {minibatcher; train; if n save snapshot}
+
+    else if(argv['sample']!=None):
+        #load model with seq len 1
+    else 
+        return 'I have failed you'
     
-c2i,i2c = {},{}    
 def process_data(file_name):
-    
+    #do some error checking... please 
     with open(file_name) as f:
          fstring = ""
          for line in f:
@@ -102,9 +113,14 @@ def model( opt ):
     
     
     
-def add_training_nodes():
+def add_training_nodes(top_hids):
+   logits = tf.concat(0,top_hids,name="concat")
+   labels = tf.placeholder(tf.int64,[None])
+   loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits,labels)
+   optimizer = tf.train.RMSPropOptimizer(0.05)
+   train_op = optimizer.minimize(loss)
 
-   return 
+   return labels,loss,train_op
     
 def train():
     return
